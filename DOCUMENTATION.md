@@ -248,6 +248,9 @@ Each entry contains:
 - `section0modalhtml` — pre-rendered section 0 HTML (for modal DOM transfer)
 - `section0unread`, `hassection0unread`, `section0unreadlabel` — unread badge data
 
+**Course title:**
+- `coursefullname` — formatted full course name shown above the active unit
+
 **Banner data:**
 - `showbanner`, `courseshortname`, `coursefullname`, `courseimageurl`, `hascourseimage`
 
