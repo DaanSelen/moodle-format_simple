@@ -1157,7 +1157,7 @@ define([
         progressBar.setAttribute('cy', '18');
         progressBar.setAttribute('r', '16');
         progressBar.setAttribute('fill', 'none');
-        progressBar.setAttribute('stroke', '#10b981');
+        progressBar.setAttribute('stroke', 'var(--simple-accent)');
         progressBar.setAttribute('stroke-width', '2.5');
         progressBar.setAttribute('stroke-linecap', 'round');
         progressBar.setAttribute('stroke-dasharray', CIRCUMFERENCE);
