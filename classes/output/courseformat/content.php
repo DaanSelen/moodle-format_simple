@@ -200,6 +200,35 @@ class content extends content_base {
         foreach ($data->sections as &$sectiondata) {
             $sectiondata->isactive = ((int) $sectiondata->num === $activesection);
         }
+        unset($navitem, $sectiondata);
+
+        // Give every navigable section a direct continuation action. Restricted units are
+        // omitted because the matching navigation item cannot be opened by the learner.
+        $sectioncount = count($data->sections);
+        foreach ($data->sections as $index => $sectiondata) {
+            if ($sectiondata->issection0 && $section0modal) {
+                continue;
+            }
+
+            for ($nextindex = $index + 1; $nextindex < $sectioncount; $nextindex++) {
+                $nextsection = $data->sections[$nextindex];
+                if (!empty($nextsection->isrestricted)) {
+                    continue;
+                }
+
+                $nexturl = $format->get_view_url((int) $nextsection->num);
+                $nexturl->param('section', (int) $nextsection->num);
+                $sectiondata->hasnextsection = true;
+                $sectiondata->nextsection = (int) $nextsection->num;
+                $sectiondata->nextsectionlabel = get_string(
+                    'continuetonext',
+                    'format_simple',
+                    $nextsection->name
+                );
+                $sectiondata->nextsectionurl = $nexturl->out(false);
+                break;
+            }
+        }
 
         $data->hassections = !empty($data->navitems) || $data->hassection0;
 

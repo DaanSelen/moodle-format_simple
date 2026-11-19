@@ -147,7 +147,7 @@ define([
      * Set up section navigation click handlers.
      */
     const setupNavigation = function() {
-        const navItems = root.querySelectorAll('.simple-nav-item');
+        const navItems = root.querySelectorAll('.simple-nav-item, .simple-section-next');
 
         navItems.forEach(function(item) {
             item.addEventListener('click', function(e) {

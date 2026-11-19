@@ -38,6 +38,7 @@ $string['colourscheme_default'] = 'Built-in blue';
 $string['colourscheme_desc'] = 'Where the accent colour comes from. The theme\'s brand colour is read from the active theme\'s settings, or its parent theme\'s if it has none of its own. If no hex brand colour is found there, the built-in blue is used.';
 $string['colourscheme_theme'] = 'Theme brand colour';
 $string['completedname'] = '{$a} is complete';
+$string['continuetonext'] = 'Continue to {$a}';
 $string['courseinfo'] = 'Course Info';
 $string['coursetools'] = 'Course tools';
 $string['currentsection'] = 'This unit';
