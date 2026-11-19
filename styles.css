@@ -1425,8 +1425,8 @@ body.format-simple .simple-nav-callout {
 }
 
 .format-simple .simple-cm-dot.is-complete {
-    background: var(--simple-success);
-    border-color: var(--simple-success);
+    background: var(--simple-accent);
+    border-color: var(--simple-accent);
 }
 
 /* The quiet label beside the indicator, naming what the activity asks for.
@@ -1479,7 +1479,7 @@ body.format-simple .simple-nav-callout {
 }
 
 .format-simple .simple-cm-dot.is-manual.is-complete {
-    border-color: var(--simple-success);
+    border-color: var(--simple-accent);
 }
 
 /* Something the course awards on its own: a dotted edge, and no invitation to click. */
@@ -1493,7 +1493,7 @@ body.format-simple .simple-nav-callout {
 /* Once earned, the dotted edge would fight the fill, so let the fill speak. */
 .format-simple .simple-cm-dot.is-conditional.is-complete {
     border-style: solid;
-    border-color: var(--simple-success);
+    border-color: var(--simple-accent);
 }
 
 /* ---- Completion indicator inside content rendered in place ----
@@ -3231,15 +3231,15 @@ body.format-simple[data-simple-theme="dark"][data-simple-theme="dark"] .simple-p
 }
 
 body.format-simple[data-simple-theme="dark"][data-simple-theme="dark"] .simple-progress-bar {
-    stroke: var(--simple-success);
+    stroke: var(--simple-accent);
 }
 
 body.format-simple[data-simple-theme="dark"][data-simple-theme="dark"] .simple-progress-svg.is-complete circle {
-    fill: var(--simple-success);
+    fill: var(--simple-accent);
 }
 
 body.format-simple[data-simple-theme="dark"][data-simple-theme="dark"] .simple-progress-svg.is-complete polyline {
-    stroke: var(--simple-surface);
+    stroke: var(--simple-on-accent);
 }
 
 body.format-simple[data-simple-theme="dark"][data-simple-theme="dark"] .simple-progress-svg.is-notstarted circle {

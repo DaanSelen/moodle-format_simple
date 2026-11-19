@@ -122,12 +122,12 @@
 
                     {{^isrestricted}}
                         {{#iscomplete}}
-                        {{! Green check circle }}
+                        {{! Banner-coloured check circle }}
                         <svg class="simple-progress-svg is-complete" viewBox="0 0 36 36" width="36" height="36">
                             <circle cx="18" cy="18" r="16"
-                                    fill="#10b981" stroke="none"/>
+                                    fill="var(--simple-accent)" stroke="none"/>
                             <polyline points="12,18 16,22 24,14"
-                                      fill="none" stroke="#ffffff" stroke-width="2.5"
+                                      fill="none" stroke="var(--simple-on-accent)" stroke-width="2.5"
                                       stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         {{/iscomplete}}
@@ -138,7 +138,7 @@
                             <circle class="simple-progress-bg" cx="18" cy="18" r="16"
                                     fill="none" stroke="#e5e7eb" stroke-width="2.5"/>
                             <circle class="simple-progress-bar" cx="18" cy="18" r="16"
-                                    fill="none" stroke="#10b981" stroke-width="2.5"
+                                    fill="none" stroke="var(--simple-accent)" stroke-width="2.5"
                                     stroke-linecap="round"
                                     stroke-dasharray="{{circumference}}"
                                     stroke-dashoffset="{{dashoffset}}"
