@@ -208,8 +208,40 @@ final class index_activities_test extends \advanced_testcase {
 
         $this->assertTrue($sections[1]->hasnextsection);
         $this->assertSame(2, $sections[1]->nextsection);
+        $this->assertSame(
+            get_string('continuetonext', 'format_simple', 'Unit 2'),
+            $sections[1]->nextsectionlabel
+        );
         $this->assertStringContainsString('#section-2', $sections[1]->nextsectionurl);
         $this->assertObjectNotHasProperty('hasnextsection', $sections[2]);
+    }
+
+    /**
+     * The plain continuation label can be chosen for one course without changing another.
+     */
+    public function test_continue_button_text_is_configurable_per_course(): void {
+        $this->resetAfterTest(true);
+        [$course, $student] = $this->make_course();
+        [$othercourse, $otherstudent] = $this->make_course();
+
+        course_get_format($course->id)->update_course_format_options([
+            'id' => $course->id,
+            'continuebuttontext' => 1,
+        ]);
+
+        $data = $this->export_content($course, $student);
+        $sections = array_column($data->sections, null, 'num');
+        $this->assertSame(
+            get_string('continuebuttontext_plain', 'format_simple'),
+            $sections[1]->nextsectionlabel
+        );
+
+        $otherdata = $this->export_content($othercourse, $otherstudent);
+        $othersections = array_column($otherdata->sections, null, 'num');
+        $this->assertSame(
+            get_string('continuetonext', 'format_simple', 'Unit 2'),
+            $othersections[1]->nextsectionlabel
+        );
     }
 
     /**

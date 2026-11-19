@@ -294,6 +294,10 @@ class format_simple extends core_courseformat\base {
                     'default' => 0,
                     'type' => PARAM_INT,
                 ],
+                'continuebuttontext' => [
+                    'default' => 0,
+                    'type' => PARAM_INT,
+                ],
                 'showindexactivities' => [
                     'default' => 0,
                     'type' => PARAM_INT,
@@ -367,6 +371,21 @@ class format_simple extends core_courseformat\base {
                             10 => new \lang_string('navcollapse_seconds', 'format_simple', 10),
                             30 => new \lang_string('navcollapse_seconds', 'format_simple', 30),
                             60 => new \lang_string('navcollapse_seconds', 'format_simple', 60),
+                        ],
+                    ],
+                ]
+            );
+            $courseformatoptions['continuebuttontext'] = array_merge(
+                $courseformatoptions['continuebuttontext'],
+                [
+                    'label' => new \lang_string('continuebuttontext', 'format_simple'),
+                    'help' => 'continuebuttontext',
+                    'help_component' => 'format_simple',
+                    'element_type' => 'select',
+                    'element_attributes' => [
+                        [
+                            0 => new \lang_string('continuebuttontext_next', 'format_simple'),
+                            1 => new \lang_string('continuebuttontext_plain', 'format_simple'),
                         ],
                     ],
                 ]
