@@ -54,6 +54,7 @@ $string['darkmode_light'] = 'Light';
 $string['darkmode_until'] = 'until';
 $string['deletesection'] = 'Delete unit';
 $string['editsection'] = 'Edit unit';
+$string['editcoursesettings'] = 'Settings';
 $string['exitfullscreen'] = 'Exit fullscreen';
 $string['failedtoload'] = 'Failed to load course info.';
 $string['hiddensections'] = 'Hidden sections';

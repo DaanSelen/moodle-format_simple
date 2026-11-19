@@ -108,6 +108,8 @@ class format_simple extends core_courseformat\base {
         parent::page_set_course($page);
         $course = $this->get_course();
         $courseurl = new \moodle_url('/course/view.php', ['id' => $course->id]);
+        $settingsurl = new \moodle_url('/course/edit.php', ['id' => $course->id]);
+        $caneditcourse = has_capability('moodle/course:update', \context_course::instance($course->id));
         $formatoptions = $this->get_format_options();
         $section0modal = !empty($formatoptions['section0modal']) ? 1 : 0;
 
@@ -124,6 +126,8 @@ class format_simple extends core_courseformat\base {
             (int) $course->id,
             $section0modal,
             $unreadcount,
+            $settingsurl->out(false),
+            $caneditcourse,
             $darktheme,
             $darkstart,
             $darkend,
