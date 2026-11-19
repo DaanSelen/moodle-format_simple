@@ -44,6 +44,10 @@
     * resources - Array of resource module data.
     * hasactivities - Whether there are activity items.
     * activities - Array of activity module data.
+    * hasnextsection - Whether another accessible section follows this one.
+    * nextsection - The next section number.
+    * nextsectionlabel - Accessible text describing the next section.
+    * nextsectionurl - URL for the next section.
 
     Each activity in the arrays above additionally carries:
     * hasindicator - Whether a completion indicator should be rendered.
@@ -444,6 +448,19 @@
         {{{cmcontrols}}}
     </div>
     {{/hascmcontrols}}
+    {{/editing}}
+
+    {{^editing}}
+    {{#hasnextsection}}
+    <nav class="simple-section-pagination" aria-label="{{nextsectionlabel}}">
+        <a class="simple-section-next btn btn-primary"
+           href="{{nextsectionurl}}"
+           data-section="{{nextsection}}">
+            <span>{{nextsectionlabel}}</span>
+            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </a>
+    </nav>
+    {{/hasnextsection}}
     {{/editing}}
 
 </section>

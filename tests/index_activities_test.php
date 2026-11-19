@@ -197,6 +197,22 @@ final class index_activities_test extends \advanced_testcase {
     }
 
     /**
+     * Sections export a continuation link except for the final unit.
+     */
+    public function test_sections_link_to_the_next_unit(): void {
+        $this->resetAfterTest(true);
+
+        [$course, $student] = $this->make_course();
+        $data = $this->export_content($course, $student);
+        $sections = array_column($data->sections, null, 'num');
+
+        $this->assertTrue($sections[1]->hasnextsection);
+        $this->assertSame(2, $sections[1]->nextsection);
+        $this->assertStringContainsString('#section-2', $sections[1]->nextsectionurl);
+        $this->assertObjectNotHasProperty('hasnextsection', $sections[2]);
+    }
+
+    /**
      * With the setting on, tracked activities are listed and untracked ones are not.
      */
     public function test_only_tracked_activities_are_listed(): void {

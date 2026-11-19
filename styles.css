@@ -1840,6 +1840,23 @@ body.format-simple .simple-nav-callout {
     border-top: 1px dashed var(--simple-border);
 }
 
+/* ---- Continue to Next Section ---- */
+
+.format-simple .simple-section-pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--simple-border);
+}
+
+.format-simple .simple-section-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
 /* ---- Add Section Button in Nav ---- */
 
 .format-simple .simple-nav-addsection {
