@@ -457,6 +457,18 @@
     {{/editing}}
 
     {{^editing}}
+    {{#hasfinish}}
+    <nav class="simple-section-pagination" aria-label="{{finishlabel}}">
+        <button class="simple-section-finish btn btn-primary"
+                type="button"
+                data-section="{{num}}"
+                aria-label="{{finishlabel}}">
+            <span>{{finishlabel}}</span>
+            <i class="fa fa-check" aria-hidden="true"></i>
+        </button>
+    </nav>
+    {{/hasfinish}}
+    {{^hasfinish}}
     {{#hasnextsection}}
     <nav class="simple-section-pagination" aria-label="{{nextsectionlabel}}">
         <a class="simple-section-next btn btn-primary"
@@ -467,6 +479,7 @@
         </a>
     </nav>
     {{/hasnextsection}}
+    {{/hasfinish}}
     {{/editing}}
 
 </section>

@@ -93,14 +93,17 @@ define([
         Str.get_strings([
             {key: 'togglefullscreen', component: 'format_simple'},
             {key: 'exitfullscreen', component: 'format_simple'},
+            {key: 'unitread', component: 'format_simple'},
         ]).then(function(strings) {
             langStrings.togglefullscreen = strings[0];
             langStrings.exitfullscreen = strings[1];
+            langStrings.unitread = strings[2];
             return;
         }).catch(function() {
             // Fallback to English.
             langStrings.togglefullscreen = 'Toggle fullscreen';
             langStrings.exitfullscreen = 'Exit fullscreen';
+            langStrings.unitread = 'Unit marked as read';
         });
 
         isEditing = root.dataset.editing === 'true';
@@ -170,8 +173,30 @@ define([
                     var currentSection = item.closest('.simple-section');
                     item.setAttribute('aria-busy', 'true');
                     completeFeaturedOnContinue(currentSection).then(function() {
+                        return markUnitComplete(currentSection);
+                    }).then(function(success) {
                         item.removeAttribute('aria-busy');
-                        switchSection(sectionNum);
+                        if (success) {
+                            paintUnitRead(currentSection);
+                            switchSection(sectionNum);
+                        }
+                    });
+                    return;
+                }
+                if (item.classList.contains('simple-section-finish')) {
+                    var finishSection = item.closest('.simple-section');
+                    item.setAttribute('aria-busy', 'true');
+                    completeFeaturedOnContinue(finishSection).then(function() {
+                        return markUnitComplete(finishSection);
+                    }).then(function(success) {
+                        if (!success) {
+                            item.removeAttribute('aria-busy');
+                            return;
+                        }
+                        paintUnitRead(finishSection);
+                        return finishCourse();
+                    }).finally(function() {
+                        item.removeAttribute('aria-busy');
                     });
                     return;
                 }
@@ -995,6 +1020,88 @@ define([
 
         var viewable = wrapper.querySelector('[data-viewservice]');
         return viewable ? raiseViewEvent(viewable, sectionNum) : Promise.resolve(false);
+    };
+
+    /**
+     * Persist the learner's acknowledgement of the current unit.
+     */
+    const markUnitComplete = function(section) {
+        if (!section) {
+            return Promise.resolve(false);
+        }
+        var courseid = parseInt(root.dataset.courseid, 10);
+        var sectionNum = parseInt(section.dataset.section, 10);
+        return new Promise(function(resolve) {
+            Ajax.call([{
+                methodname: 'format_simple_mark_unit_complete',
+                args: {courseid: courseid, section: sectionNum},
+                done: function() {
+                    resolve(true);
+                },
+                fail: function(error) {
+                    showCompletionMessage(error && error.message
+                        ? error.message
+                        : 'This unit could not be recorded. Please try again.');
+                    resolve(false);
+                }
+            }]);
+        });
+    };
+
+    /**
+     * Submit the final unit and validate Moodle course completion.
+     */
+    const finishCourse = function() {
+        var courseid = parseInt(root.dataset.courseid, 10);
+        return new Promise(function(resolve) {
+            Ajax.call([{
+                methodname: 'format_simple_finish_course',
+                args: {courseid: courseid},
+                done: function(result) {
+                    showCompletionMessage(result.message);
+                    resolve(result.completed);
+                },
+                fail: function(error) {
+                    showCompletionMessage(error && error.message
+                        ? error.message
+                        : 'Course completion could not be submitted. Please try again.');
+                    resolve(false);
+                }
+            }]);
+        });
+    };
+
+    /**
+     * Display accessible persistent-status feedback.
+     */
+    const showCompletionMessage = function(message) {
+        var existing = root.querySelector('.simple-completion-status');
+        if (existing) {
+            existing.remove();
+        }
+        var status = document.createElement('div');
+        status.className = 'simple-completion-status';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        status.textContent = message;
+        root.querySelector('.simple-content')?.prepend(status);
+    };
+
+    /**
+     * Update the current unit's navigation indicator immediately after persistence succeeds.
+     */
+    const paintUnitRead = function(section) {
+        if (!section) {
+            return;
+        }
+        var sectionNum = parseInt(section.dataset.section, 10);
+        var navItem = root.querySelector('.simple-nav-item[data-section="' + sectionNum + '"]');
+        if (!navItem) {
+            return;
+        }
+        navItem.dataset.unitread = 'true';
+        navItem.setAttribute('aria-label', langStrings.unitread || 'Unit marked as read');
+        animateProgress(navItem.querySelector('.simple-nav-indicator'), 0, 100);
     };
 
     /**

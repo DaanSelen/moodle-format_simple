@@ -584,7 +584,7 @@ final class format_simple_test extends \advanced_testcase {
         $section = $modinfo->get_section_info(1);
 
         $progress = \format_simple::get_section_progress($section, $course);
-        $this->assertEquals(0, $progress->total);
+        $this->assertEquals(1, $progress->total);
         $this->assertEquals('notstarted', $progress->status);
     }
 
@@ -627,9 +627,9 @@ final class format_simple_test extends \advanced_testcase {
         $section = $modinfo->get_section_info(1);
         $progress = \format_simple::get_section_progress($section, $course);
 
-        $this->assertEquals(2, $progress->total);
+        $this->assertEquals(3, $progress->total);
         $this->assertEquals(1, $progress->completed);
-        $this->assertEquals(50, $progress->percentage);
+        $this->assertEquals(33, $progress->percentage);
         $this->assertEquals('inprogress', $progress->status);
     }
 
@@ -659,13 +659,19 @@ final class format_simple_test extends \advanced_testcase {
         $modinfo = get_fast_modinfo($course);
         $cm = $modinfo->get_cm($page->cmid);
         $completion->update_state($cm, COMPLETION_COMPLETE);
+        $section = $modinfo->get_section_info(1);
+        \format_simple\local\progress::mark_section_complete(
+            $course->id,
+            $user->id,
+            (int) $section->id
+        );
 
         $modinfo = get_fast_modinfo($course);
         $section = $modinfo->get_section_info(1);
         $progress = \format_simple::get_section_progress($section, $course);
 
-        $this->assertEquals(1, $progress->total);
-        $this->assertEquals(1, $progress->completed);
+        $this->assertEquals(2, $progress->total);
+        $this->assertEquals(2, $progress->completed);
         $this->assertEquals(100, $progress->percentage);
         $this->assertEquals('complete', $progress->status);
     }

@@ -39,4 +39,18 @@ $functions = [
         'ajax'          => true,
         'loginrequired' => true,
     ],
+    'format_simple_mark_unit_complete' => [
+        'classname' => 'format_simple\external\mark_unit_complete',
+        'description' => 'Records acknowledgement of a visible Simple format unit.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
+    'format_simple_finish_course' => [
+        'classname' => 'format_simple\external\finish_course',
+        'description' => 'Validates unit and activity requirements, then submits Moodle course completion.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
 ];

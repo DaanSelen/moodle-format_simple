@@ -107,7 +107,7 @@
                     type="button"
                     {{#isrestricted}}aria-disabled="true"{{/isrestricted}}
                     aria-current="{{#isactive}}true{{/isactive}}{{^isactive}}false{{/isactive}}"
-                    aria-label="{{name}}">
+                    aria-label="{{#unitreadlabel}}{{unitreadlabel}}{{/unitreadlabel}}{{^unitreadlabel}}{{name}}{{/unitreadlabel}}">
 
                 {{! Progress indicator }}
                 <span class="simple-nav-indicator" aria-hidden="true">

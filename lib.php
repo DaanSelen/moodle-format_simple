@@ -761,15 +761,31 @@ class format_simple extends core_courseformat\base {
         $progress->percentage = 0;
         $progress->completed = 0;
         $progress->total = 0;
+        $progress->acknowledged = \format_simple\local\progress::is_section_complete(
+            $course->id,
+            $USER->id,
+            (int) $section->id
+        );
 
         $completion = new \completion_info($course);
-        if (!$completion->is_enabled()) {
-            return $progress;
-        }
 
         $modinfo = get_fast_modinfo($course);
 
-        // Get all course modules in this section that have completion tracking.
+        if (!$completion->is_enabled()) {
+            if ($progress->acknowledged) {
+                $progress->total = 1;
+                $progress->completed = 1;
+                $progress->status = 'complete';
+                $progress->percentage = 100;
+            }
+            return $progress;
+        }
+
+        $progress->total = 1;
+        if ($progress->acknowledged) {
+            $progress->completed = 1;
+        }
+
         foreach ($modinfo->get_cms() as $cm) {
             if ($cm->section != $section->id) {
                 continue;
@@ -792,14 +808,10 @@ class format_simple extends core_courseformat\base {
             }
         }
 
-        if ($progress->total === 0) {
-            return $progress;
-        }
-
         $progress->percentage = (int) round(($progress->completed / $progress->total) * 100);
 
         if ($progress->completed === $progress->total) {
-            $progress->status = 'complete';
+            $progress->status = $progress->acknowledged ? 'complete' : 'inprogress';
         } else if ($progress->completed > 0) {
             $progress->status = 'inprogress';
         }

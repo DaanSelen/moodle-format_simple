@@ -211,6 +211,22 @@ class content extends content_base {
                 continue;
             }
 
+            $lastvisible = true;
+            for ($nextindex = $index + 1; $nextindex < $sectioncount; $nextindex++) {
+                $candidate = $data->sections[$nextindex];
+                if (!empty($candidate->issection0) && $section0modal) {
+                    continue;
+                }
+                if (empty($candidate->isrestricted)) {
+                    $lastvisible = false;
+                    break;
+                }
+            }
+            if ($lastvisible && !$data->editing) {
+                $sectiondata->hasfinish = true;
+                $sectiondata->finishlabel = get_string('finishcourse', 'format_simple');
+            }
+
             for ($nextindex = $index + 1; $nextindex < $sectioncount; $nextindex++) {
                 $nextsection = $data->sections[$nextindex];
                 if (!empty($nextsection->isrestricted)) {
@@ -338,6 +354,10 @@ class content extends content_base {
         $navitem->isinprogress = ($progress->status === 'inprogress');
         $navitem->isnotstarted = ($progress->status === 'notstarted');
         $navitem->percentage = $progress->percentage;
+        $navitem->unitread = $progress->acknowledged;
+        $navitem->unitreadlabel = $progress->acknowledged
+            ? get_string('unitreadlabel', 'format_simple', $navitem->name)
+            : '';
 
         // A unit with nothing to complete has no progress to report. Saying "not started" for
         // ever reads as work outstanding, so it gets a state of its own instead.
