@@ -220,11 +220,9 @@ class content extends content_base {
                 $nexturl->param('section', (int) $nextsection->num);
                 $sectiondata->hasnextsection = true;
                 $sectiondata->nextsection = (int) $nextsection->num;
-                $sectiondata->nextsectionlabel = get_string(
-                    'continuetonext',
-                    'format_simple',
-                    $nextsection->name
-                );
+                $sectiondata->nextsectionlabel = !empty($formatoptions['continuebuttontext'])
+                    ? get_string('continuebuttontext_plain', 'format_simple')
+                    : get_string('continuetonext', 'format_simple', $nextsection->name);
                 $sectiondata->nextsectionurl = $nexturl->out(false);
                 break;
             }
