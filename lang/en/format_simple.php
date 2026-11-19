@@ -81,7 +81,6 @@ $string['unitreadlabel'] = '{$a} — read';
 $string['nocriteria'] = 'Course completion is not configured with any Moodle completion criteria.';
 $string['incompleteunits'] = 'Complete these units: {$a}.';
 $string['incompleteactivities'] = 'Complete these activities: {$a}.';
-$string['completionrecordmissing'] = 'Moodle could not create a course completion record for this learner.';
 $string['moodlecriteriaunmet'] = 'Moodle reports that one or more configured course criteria are still incomplete.';
 $string['coursecompletedconfirmed'] = 'Course completion is confirmed in Moodle.';
 $string['privacy:metadata:table'] = 'Unit acknowledgements in the Simple course format.';

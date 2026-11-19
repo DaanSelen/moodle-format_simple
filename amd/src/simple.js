@@ -153,7 +153,7 @@ define([
      * Set up section navigation click handlers.
      */
     const setupNavigation = function() {
-        const navItems = root.querySelectorAll('.simple-nav-item, .simple-section-next');
+        const navItems = root.querySelectorAll('.simple-nav-item, .simple-section-next, .simple-section-finish');
 
         navItems.forEach(function(item) {
             item.addEventListener('click', function(e) {
@@ -165,19 +165,26 @@ define([
                 }
 
                 const sectionNum = parseInt(item.dataset.section, 10);
-                if (sectionNum === activeSection) {
+                if (!item.classList.contains('simple-section-finish') && sectionNum === activeSection) {
                     return;
                 }
 
                 if (item.classList.contains('simple-section-next')) {
                     var currentSection = item.closest('.simple-section');
+                    if (parseInt(currentSection.dataset.section, 10) === 0) {
+                        switchSection(sectionNum);
+                        return;
+                    }
                     item.setAttribute('aria-busy', 'true');
                     completeFeaturedOnContinue(currentSection).then(function() {
-                        return markUnitComplete(currentSection);
+                        return root.dataset.canAcknowledge === 'true'
+                            ? markUnitComplete(currentSection) : true;
                     }).then(function(success) {
                         item.removeAttribute('aria-busy');
                         if (success) {
-                            paintUnitRead(currentSection);
+                            if (root.dataset.canAcknowledge === 'true') {
+                                paintUnitRead(currentSection);
+                            }
                             switchSection(sectionNum);
                         }
                     });
@@ -1099,9 +1106,12 @@ define([
         if (!navItem) {
             return;
         }
-        navItem.dataset.unitread = 'true';
-        navItem.setAttribute('aria-label', langStrings.unitread || 'Unit marked as read');
-        animateProgress(navItem.querySelector('.simple-nav-indicator'), 0, 100);
+        if (navItem.dataset.unitread !== 'true') {
+            navItem.dataset.progressCompleted = (parseInt(navItem.dataset.progressCompleted, 10) || 0) + 1;
+            navItem.dataset.unitread = 'true';
+        }
+        navItem.setAttribute('aria-label', navItem.dataset.unitreadlabel || langStrings.unitread);
+        refreshSectionProgress(sectionNum);
     };
 
     /**
@@ -1116,6 +1126,13 @@ define([
             return;
         }
         if (wrapper.hasAttribute('data-completion-tracked')) {
+            var oldState = wrapper.getAttribute('data-completion-state');
+            var section = wrapper.closest('.simple-section');
+            var navItem = section && root.querySelector('.simple-nav-item[data-section="' + section.dataset.section + '"]');
+            if (navItem && root.dataset.trackActivities === 'true' && oldState !== state) {
+                var completed = parseInt(navItem.dataset.progressCompleted, 10) || 0;
+                navItem.dataset.progressCompleted = completed + (state === 'complete' ? 1 : -1);
+            }
             wrapper.setAttribute('data-completion-state', state);
         }
         var inline = wrapper.querySelector('.simple-inline-content, .simple-embed-container');
@@ -1254,36 +1271,19 @@ define([
             return;
         }
 
-        // Count trackable items from our own state attributes rather than from core's
-        // completion markup, whose shape is not ours to depend on.
-        var trackedItems = section.querySelectorAll('[data-completion-tracked="1"]');
-        var total = trackedItems.length;
-        if (total === 0) {
-            return;
-        }
-
-        var completed = 0;
-        trackedItems.forEach(function(el) {
-            if (el.getAttribute('data-completion-state') === 'complete') {
-                completed++;
-            }
-        });
+        var total = Math.max(1, parseInt(navItem.dataset.progressTotal, 10) || 0);
+        var completed = parseInt(navItem.dataset.progressCompleted, 10) || 0;
 
         var targetPct = Math.round((completed / total) * 100);
 
-        // Determine current percentage from the existing SVG.
-        var currentPct = 0;
-        var existingText = indicator.querySelector('.simple-progress-text');
-        if (existingText) {
-            currentPct = parseInt(existingText.textContent, 10) || 0;
-        } else if (indicator.querySelector('.is-complete')) {
-            currentPct = 100;
-        }
+        // The server provides the initial percentage, including activities not rendered on the page.
+        var currentPct = parseInt(navItem.dataset.percentage, 10) || 0;
 
         if (currentPct === targetPct) {
             return;
         }
 
+        navItem.dataset.percentage = targetPct;
         animateProgress(indicator, currentPct, targetPct);
     };
 
@@ -1301,6 +1301,8 @@ define([
     const animateProgress = function(indicator, fromPct, toPct) {
         var duration = 1000;
         var ns = 'http://www.w3.org/2000/svg';
+        var animation = String((parseInt(indicator.dataset.animation, 10) || 0) + 1);
+        indicator.dataset.animation = animation;
 
         // Build an in-progress SVG for the animation.
         var svg = document.createElementNS(ns, 'svg');
@@ -1349,6 +1351,9 @@ define([
 
         var startTime = null;
         var animate = function(timestamp) {
+            if (indicator.dataset.animation !== animation) {
+                return;
+            }
             if (!startTime) {
                 startTime = timestamp;
             }
@@ -1370,7 +1375,9 @@ define([
                 if (toPct >= 100) {
                     Templates.render('format_simple/local/progress_complete', {})
                         .then(function(html) {
-                            indicator.innerHTML = html;
+                            if (indicator.dataset.animation === animation) {
+                                indicator.innerHTML = html;
+                            }
                             return;
                         })
                         .catch(function() {
@@ -1379,7 +1386,9 @@ define([
                 } else if (toPct <= 0) {
                     Templates.render('format_simple/local/progress_empty', {})
                         .then(function(html) {
-                            indicator.innerHTML = html;
+                            if (indicator.dataset.animation === animation) {
+                                indicator.innerHTML = html;
+                            }
                             return;
                         })
                         .catch(function() {

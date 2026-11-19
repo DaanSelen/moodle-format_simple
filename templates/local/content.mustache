@@ -74,6 +74,8 @@
 <div id="format-simple-root"
      class="format-simple-wrapper"
      data-courseid="{{courseid}}"
+     data-can-acknowledge="{{#canacknowledge}}true{{/canacknowledge}}{{^canacknowledge}}false{{/canacknowledge}}"
+     data-track-activities="{{#trackactivities}}true{{/trackactivities}}{{^trackactivities}}false{{/trackactivities}}"
      data-activesection="{{activesection}}"
      data-navcollapse="{{navcollapse}}"
      {{#editing}}data-editing="true"{{/editing}}>
@@ -106,10 +108,15 @@
             <button class="simple-nav-item {{#isactive}}is-active{{/isactive}} {{#isrestricted}}is-restricted{{/isrestricted}}"
                     data-section="{{num}}"
                     data-sectionid="{{id}}"
+                    data-unitread="{{#unitread}}true{{/unitread}}{{^unitread}}false{{/unitread}}"
+                    data-unitreadlabel="{{unitreadlabel}}"
+                    data-percentage="{{percentage}}"
+                    data-progress-total="{{progress.total}}"
+                    data-progress-completed="{{progress.completed}}"
                     type="button"
                     {{#isrestricted}}aria-disabled="true"{{/isrestricted}}
                     aria-current="{{#isactive}}true{{/isactive}}{{^isactive}}false{{/isactive}}"
-                    aria-label="{{#unitreadlabel}}{{unitreadlabel}}{{/unitreadlabel}}{{^unitreadlabel}}{{name}}{{/unitreadlabel}}">
+                    aria-label="{{#unitread}}{{unitreadlabel}}{{/unitread}}{{^unitread}}{{name}}{{/unitread}}">
 
                 {{! Progress indicator }}
                 <span class="simple-nav-indicator" aria-hidden="true">

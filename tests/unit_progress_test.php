@@ -52,16 +52,34 @@ final class unit_progress_test extends \externallib_advanced_testcase {
     /**
      * Invoke the unit acknowledgement external function in test mode.
      */
-    protected function mark_unit(\stdClass $course, int $section): array {
+    protected function call_service(string $method, array $params): array {
         $_POST['sesskey'] = sesskey();
         try {
-            return external_api::call_external_function(
-                'format_simple_mark_unit_complete',
-                ['courseid' => $course->id, 'section' => $section]
-            );
+            return external_api::call_external_function($method, $params);
         } finally {
             unset($_POST['sesskey']);
         }
+    }
+
+    /**
+     * Invoke the unit acknowledgement service and return its result.
+     */
+    protected function mark_unit(\stdClass $course, int $section): array {
+        $response = $this->call_service(
+            'format_simple_mark_unit_complete',
+            ['courseid' => $course->id, 'section' => $section]
+        );
+        $this->assertFalse($response['error'], $response['exception']->message ?? '');
+        return $response['data'];
+    }
+
+    /**
+     * Invoke the course completion service and return its result.
+     */
+    protected function finish_course(\stdClass $course): array {
+        $response = $this->call_service('format_simple_finish_course', ['courseid' => $course->id]);
+        $this->assertFalse($response['error'], $response['exception']->message ?? '');
+        return $response['data'];
     }
 
     public function test_unit_acknowledgement_persists_and_reloads(): void {
@@ -91,15 +109,7 @@ final class unit_progress_test extends \externallib_advanced_testcase {
         [$course, $student] = $this->make_course();
         $this->setUser($student);
 
-        $_POST['sesskey'] = sesskey();
-        try {
-            $result = external_api::call_external_function(
-                'format_simple_finish_course',
-                ['courseid' => $course->id]
-            );
-        } finally {
-            unset($_POST['sesskey']);
-        }
+        $result = $this->finish_course($course);
 
         $this->assertFalse($result['success']);
         $this->assertFalse($result['completed']);
@@ -118,15 +128,7 @@ final class unit_progress_test extends \externallib_advanced_testcase {
 
         $this->mark_unit($course, 1);
         $this->mark_unit($course, 2);
-        $_POST['sesskey'] = sesskey();
-        try {
-            $result = external_api::call_external_function(
-                'format_simple_finish_course',
-                ['courseid' => $course->id]
-            );
-        } finally {
-            unset($_POST['sesskey']);
-        }
+        $result = $this->finish_course($course);
 
         $this->assertFalse($result['completed']);
         $this->assertStringContainsString('Complete these activities', $result['message']);
@@ -137,15 +139,7 @@ final class unit_progress_test extends \externallib_advanced_testcase {
         [$course, $student] = $this->make_course(false);
         $this->setUser($student);
 
-        $_POST['sesskey'] = sesskey();
-        try {
-            $result = external_api::call_external_function(
-                'format_simple_finish_course',
-                ['courseid' => $course->id]
-            );
-        } finally {
-            unset($_POST['sesskey']);
-        }
+        $result = $this->finish_course($course);
 
         $this->assertFalse($result['completed']);
         $this->assertStringContainsString('not configured', $result['message']);
@@ -159,15 +153,7 @@ final class unit_progress_test extends \externallib_advanced_testcase {
 
         $this->mark_unit($course, 1);
         $this->mark_unit($course, 2);
-        $_POST['sesskey'] = sesskey();
-        try {
-            $result = external_api::call_external_function(
-                'format_simple_finish_course',
-                ['courseid' => $course->id]
-            );
-        } finally {
-            unset($_POST['sesskey']);
-        }
+        $result = $this->finish_course($course);
 
         $this->assertTrue($result['success']);
         $this->assertTrue($result['completed']);
@@ -188,7 +174,53 @@ final class unit_progress_test extends \externallib_advanced_testcase {
         rebuild_course_cache($course->id, true);
         $this->setUser($student);
 
-        $this->expectException(\moodle_exception::class);
+        $response = $this->call_service(
+            'format_simple_mark_unit_complete',
+            ['courseid' => $course->id, 'section' => 1]
+        );
+        $this->assertTrue($response['error']);
+        $this->assertSame('restricted_info', $response['exception']->errorcode);
+    }
+
+    public function test_cleanup_removes_only_stale_sections_in_the_course(): void {
+        global $DB;
+        $this->resetAfterTest(true);
+        [$course, $student] = $this->make_course();
+        [$othercourse, $otherstudent] = $this->make_course();
+        $sectionid = $DB->get_field('course_sections', 'id', ['course' => $course->id, 'section' => 1]);
+        $othersectionid = $DB->get_field('course_sections', 'id', ['course' => $othercourse->id, 'section' => 1]);
+        \format_simple\local\progress::mark_section_complete($course->id, $student->id, (int) $sectionid);
+        \format_simple\local\progress::mark_section_complete($course->id, $student->id, (int) $othersectionid);
+        \format_simple\local\progress::mark_section_complete($othercourse->id, $otherstudent->id, (int) $othersectionid);
+
+        \format_simple\local\progress::cleanup_course($course->id);
+
+        $this->assertTrue(\format_simple\local\progress::is_section_complete($course->id, $student->id, (int) $sectionid));
+        $this->assertFalse(\format_simple\local\progress::is_section_complete($course->id, $student->id, (int) $othersectionid));
+        $this->assertTrue(\format_simple\local\progress::is_section_complete(
+            $othercourse->id,
+            $otherstudent->id,
+            (int) $othersectionid
+        ));
+    }
+
+    public function test_privacy_export_includes_all_acknowledged_units(): void {
+        $this->resetAfterTest(true);
+        [$course, $student] = $this->make_course();
+        $this->setUser($student);
         $this->mark_unit($course, 1);
+        $this->mark_unit($course, 2);
+
+        $context = \context_course::instance($course->id);
+        $contextlist = new \core_privacy\local\request\approved_contextlist($student, 'format_simple', [$context->id]);
+        \format_simple\privacy\provider::export_user_data($contextlist);
+        $writer = \core_privacy\local\request\writer::with_context($context);
+        $data = $writer->get_data([
+            get_string('pluginname', 'format_simple'),
+            get_string('progress_complete', 'format_simple'),
+        ]);
+        $this->assertCount(2, $data->units);
+        $this->assertNotEmpty($data->units[0]->timecompleted);
+        $this->assertNotEquals($data->units[0]->unit, $data->units[1]->unit);
     }
 }

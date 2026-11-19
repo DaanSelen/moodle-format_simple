@@ -64,17 +64,12 @@ class finish_course extends external_api {
             return ['success' => false, 'completed' => false, 'message' => implode(' ', $parts)];
         }
 
-        $coursecompletion = $completion->get_completion($USER->id);
-        if (!$coursecompletion) {
-            return ['success' => false, 'completed' => false, 'message' => get_string('completionrecordmissing', 'format_simple')];
-        }
+        $coursecompletion = new \completion_completion(['course' => $course->id, 'userid' => $USER->id]);
 
         // Unit and activity acknowledgement are plugin prerequisites. A configured
         // Moodle self-completion criterion is the supported mechanism for submitting
         // this acknowledgement to Moodle's course-completion system.
         $coursecompletion->mark_inprogress();
-        $coursecompletion->reaggregate = time();
-        $coursecompletion->update();
 
         $selfcompletion = $completion->get_completion($USER->id, COMPLETION_CRITERIA_TYPE_SELF);
         if ($selfcompletion && !$selfcompletion->is_complete()) {

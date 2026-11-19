@@ -52,6 +52,52 @@ Feature: Simple format course display and navigation
     And I should see "Unit 3"
 
   @javascript
+  Scenario: Continue records units and Finish submits the course
+    Given I log in as "student1"
+    And I am on "Course 1" course homepage
+    When I click on "#simple-section-0 .simple-section-next" "css_element"
+    Then "#simple-section-1.is-active" "css_element" should exist
+    When I click on "#simple-section-1 .simple-section-next" "css_element"
+    Then "#simple-section-2.is-active" "css_element" should exist
+    And ".simple-nav-item[data-section='1'][data-unitread='true']" "css_element" should exist
+    When I click on "#simple-section-2 .simple-section-next" "css_element"
+    Then "#simple-section-3.is-active" "css_element" should exist
+    When I click on "#simple-section-3 .simple-section-finish" "css_element"
+    Then ".simple-completion-status" "css_element" should exist
+    And ".simple-nav-item[data-section='3'][data-unitread='true']" "css_element" should exist
+
+  @javascript
+  Scenario: A course viewer who is not enrolled can continue between units
+    Given I log in as "admin"
+    And I am on "Course 1" course homepage
+    When I click on "#simple-section-0 .simple-section-next" "css_element"
+    Then "#simple-section-1.is-active" "css_element" should exist
+    When I click on "#simple-section-1 .simple-section-next" "css_element"
+    Then "#simple-section-2.is-active" "css_element" should exist
+    And ".simple-nav-item[data-section='1'][data-unitread='false']" "css_element" should exist
+
+  @javascript
+  Scenario: Unit acknowledgement does not complete an unfinished activity
+    Given the following "courses" exist:
+      | fullname        | shortname | format | numsections | enablecompletion |
+      | Progress course | PROGRESS  | simple | 2           | 1                |
+    And the following "course enrolments" exist:
+      | user     | course   | role    |
+      | student1 | PROGRESS | student |
+    And the following "activities" exist:
+      | activity | name            | course   | section | completion |
+      | forum    | Unfinished work | PROGRESS | 1       | 1          |
+    And I log in as "student1"
+    And I am on "Progress course" course homepage
+    When I click on "#simple-section-0 .simple-section-next" "css_element"
+    Then "#simple-section-1.is-active" "css_element" should exist
+    When I click on "#simple-section-1 .simple-section-next" "css_element"
+    Then "#simple-section-2.is-active" "css_element" should exist
+    And ".simple-nav-item[data-section='1'][data-unitread='true'][data-percentage='50']" "css_element" should exist
+    When I reload the page
+    Then ".simple-nav-item[data-section='1'][data-unitread='true'][data-percentage='50']" "css_element" should exist
+
+  @javascript
   Scenario: Navigation stays expanded when auto-collapse is disabled
     Given I log in as "student1"
     And I am on "Course 1" course homepage

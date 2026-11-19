@@ -44,17 +44,11 @@ class progress {
      */
     public static function cleanup_course(int $courseid): void {
         global $DB;
-        $validids = $DB->get_fieldset_select('course_sections', 'id', 'course = :course', ['course' => $courseid]);
-        if (empty($validids)) {
-            $DB->delete_records('format_simple_progress', ['courseid' => $courseid]);
-            return;
-        }
-        list($insql, $params) = $DB->get_in_or_equal($validids, SQL_PARAMS_NAMED, 'section');
-        $params['courseid'] = $courseid;
         $DB->execute(
             "DELETE FROM {format_simple_progress}
-              WHERE courseid = :courseid AND sectionid NOT IN ($insql)",
-            $params
+              WHERE courseid = :courseid
+                AND sectionid NOT IN (SELECT id FROM {course_sections} WHERE course = :sectioncourseid)",
+            ['courseid' => $courseid, 'sectioncourseid' => $courseid]
         );
     }
 
@@ -64,7 +58,6 @@ class progress {
      * @return array{units:string[], activities:string[]}
      */
     public static function get_incomplete_requirements(\stdClass $course, int $userid): array {
-        global $USER;
         $modinfo = get_fast_modinfo($course, $userid);
         $completion = new \completion_info($course);
         $units = [];

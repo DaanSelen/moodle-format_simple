@@ -52,7 +52,7 @@ class content extends content_base {
      * @return stdClass Template data.
      */
     public function export_for_template(renderer_base $output): stdClass {
-        global $PAGE;
+        global $PAGE, $USER;
 
         $format = $this->format;
         $course = $format->get_course();
@@ -61,6 +61,8 @@ class content extends content_base {
         $data = new stdClass();
         $data->courseid = $course->id;
         $coursecontext = \context_course::instance($course->id);
+        $data->canacknowledge = !isguestuser() && is_enrolled($coursecontext, $USER, '', true);
+        $data->trackactivities = (bool) (new \completion_info($course))->is_enabled();
         $data->coursefullname = format_string(
             $course->fullname,
             true,
@@ -355,9 +357,7 @@ class content extends content_base {
         $navitem->isnotstarted = ($progress->status === 'notstarted');
         $navitem->percentage = $progress->percentage;
         $navitem->unitread = $progress->acknowledged;
-        $navitem->unitreadlabel = $progress->acknowledged
-            ? get_string('unitreadlabel', 'format_simple', $navitem->name)
-            : '';
+        $navitem->unitreadlabel = get_string('unitreadlabel', 'format_simple', $navitem->name);
 
         // A unit with nothing to complete has no progress to report. Saying "not started" for
         // ever reads as work outstanding, so it gets a state of its own instead.

@@ -34,8 +34,7 @@ use core_privacy\local\request\userlist;
 /**
  * Privacy provider for format_simple.
  *
- * The only personal data this plugin stores is the user's own dark mode
- * preference, kept as standard Moodle user preferences.
+ * The plugin stores unit acknowledgements and dark mode preferences.
  */
 class provider implements
     \core_privacy\local\metadata\provider,
@@ -132,14 +131,18 @@ class provider implements
                 'courseid' => $context->instanceid,
                 'userid' => $userid,
             ]);
+            $units = [];
             foreach ($records as $record) {
                 $section = $DB->get_record('course_sections', ['id' => $record->sectionid]);
+                $units[] = (object) [
+                    'unit' => $section ? get_section_name($context->instanceid, $section) : $record->sectionid,
+                    'timecompleted' => \core_privacy\local\request\transform::datetime($record->timecompleted),
+                ];
+            }
+            if ($units) {
                 writer::with_context($context)->export_data(
                     [get_string('pluginname', 'format_simple'), get_string('progress_complete', 'format_simple')],
-                    (object) [
-                        'unit' => $section ? get_section_name($context->instanceid, $section) : $record->sectionid,
-                        'timecompleted' => \core_date::timestamp_to_date_string($record->timecompleted),
-                    ]
+                    (object) ['units' => $units]
                 );
             }
         }
@@ -176,13 +179,12 @@ class provider implements
      * Add course contexts containing users to a bulk privacy request.
      */
     public static function get_users_in_context(userlist $userlist): void {
-        global $DB;
         $context = $userlist->get_context();
         if ($context->contextlevel !== CONTEXT_COURSE) {
             return;
         }
         $sql = "SELECT userid FROM {format_simple_progress} WHERE courseid = :courseid";
-        $userlist->add_users($DB->get_fieldset_sql($sql, ['courseid' => $context->instanceid]));
+        $userlist->add_from_sql('userid', $sql, ['courseid' => $context->instanceid]);
     }
 
     /**
@@ -191,7 +193,7 @@ class provider implements
     public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;
         $context = $userlist->get_context();
-        if ($context->contextlevel !== CONTEXT_COURSE) {
+        if ($context->contextlevel !== CONTEXT_COURSE || !$userlist->get_userids()) {
             return;
         }
         list($insql, $params) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);

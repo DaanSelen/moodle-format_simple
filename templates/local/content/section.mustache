@@ -207,7 +207,7 @@
         {{/islabel}}
         {{^islabel}}
         <div class="simple-cm-wrapper {{#ishidden}}is-dimmed{{/ishidden}} {{#isstealth}}is-dimmed is-stealth{{/isstealth}}" id="module-{{id}}" data-for="cmitem" data-id="{{id}}"
-             {{#completionenabled}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/completionenabled}}
+             {{#completionenabled}}{{#uservisible}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/uservisible}}{{/completionenabled}}
              {{#hascontinuecompletion}}data-complete-on-continue="{{continuecompletion}}"{{/hascontinuecompletion}}>
             {{#hasinlinecontent}}
             <div class="simple-inline-content"
@@ -272,7 +272,7 @@
              data-for="cmitem"
              data-id="{{id}}"
              data-zone="learning"
-             {{#completionenabled}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/completionenabled}}
+             {{#completionenabled}}{{#uservisible}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/uservisible}}{{/completionenabled}}
              {{#hascontinuecompletion}}data-complete-on-continue="{{continuecompletion}}"{{/hascontinuecompletion}}>
 
             {{#isprimary}}
@@ -367,7 +367,7 @@
         {{#resources}}
         {{#hasprecedinglabels}}{{#precedinglabels}}{{> format_simple/local/content/cm/label }}{{/precedinglabels}}{{/hasprecedinglabels}}
         <div class="simple-cm-wrapper {{#ishidden}}is-dimmed{{/ishidden}} {{#isstealth}}is-dimmed is-stealth{{/isstealth}}" id="module-{{id}}" data-for="cmitem" data-id="{{id}}" data-zone="resources"
-             {{#completionenabled}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/completionenabled}}>
+             {{#completionenabled}}{{#uservisible}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/uservisible}}{{/completionenabled}}>
             <div class="simple-cm-card simple-cm-card-resource">
                 <span class="simple-resource-icon" aria-hidden="true">
                     <i class="fa {{faicon}}"></i>
@@ -400,7 +400,7 @@
         {{#activities}}
         {{#hasprecedinglabels}}{{#precedinglabels}}{{> format_simple/local/content/cm/label }}{{/precedinglabels}}{{/hasprecedinglabels}}
         <div class="simple-cm-wrapper {{#ishidden}}is-dimmed{{/ishidden}} {{#isstealth}}is-dimmed is-stealth{{/isstealth}}" id="module-{{id}}" data-for="cmitem" data-id="{{id}}" data-zone="activities"
-             {{#completionenabled}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/completionenabled}}>
+             {{#completionenabled}}{{#uservisible}}data-completion-tracked="1" data-completion-state="{{completionstate}}"{{/uservisible}}{{/completionenabled}}>
             <div class="simple-cm-card simple-cm-card-activity">
                 <img src="{{iconurl}}" alt="" class="simple-cm-icon" aria-hidden="true">
                 <span class="simple-cm-name">
