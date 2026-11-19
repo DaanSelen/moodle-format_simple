@@ -25,8 +25,8 @@ require_once($CFG->libdir . '/completionlib.php');
 /**
  * Tests for the optional list of activities under the active unit in the index.
  *
- * The list must show exactly the activities the unit's progress ring is counting, so that the
- * checklist and the percentage above it can never disagree.
+ * The list must show exactly the activities the unit's progress ring is counting alongside
+ * the unit acknowledgement.
  *
  * @package    format_simple
  * @copyright  2026 South African Theological Seminary <ict@sats.ac.za>
@@ -262,7 +262,7 @@ final class index_activities_test extends \advanced_testcase {
     }
 
     /**
-     * The list matches the progress ring, so the two can never disagree.
+     * The list matches the activity portion of the progress ring.
      */
     public function test_list_matches_the_progress_ring(): void {
         $this->resetAfterTest(true);
@@ -272,13 +272,16 @@ final class index_activities_test extends \advanced_testcase {
         $this->make_forum($course, 'Two', COMPLETION_TRACKING_MANUAL);
         $this->make_forum($course, 'Untracked', COMPLETION_TRACKING_NONE);
 
-        $item = $this->nav_item($this->export_content($course, $student), 1);
+        $data = $this->export_content($course, $student);
+        $item = $this->nav_item($data, 1);
+        $sections = array_column($data->sections, null, 'num');
 
         $this->assertEquals(
-            $item->progress->total,
+            $item->progress->total - 1,
             count($item->completionitems),
             'The list and the percentage must count the same activities.'
         );
+        $this->assertSame($item->progress, $sections[1]->progress);
     }
 
     /**
@@ -339,12 +342,9 @@ final class index_activities_test extends \advanced_testcase {
     }
 
     /**
-     * A unit with nothing to complete says so, rather than reporting no progress for ever.
-     *
-     * The progress ring has no answer when there is nothing tracked, and an empty ring reads as
-     * work still outstanding.
+     * A unit without tracked activities still requires acknowledgement.
      */
-    public function test_unit_without_tracking_is_distinguished(): void {
+    public function test_unit_without_tracked_activities_requires_acknowledgement(): void {
         $this->resetAfterTest(true);
 
         [$course, $student] = $this->make_course();
@@ -354,7 +354,7 @@ final class index_activities_test extends \advanced_testcase {
         $data = $this->export_content($course, $student);
 
         $this->assertTrue($this->nav_item($data, 1)->hastracking);
-        $this->assertFalse($this->nav_item($data, 2)->hastracking);
+        $this->assertTrue($this->nav_item($data, 2)->hastracking);
     }
 
     /**

@@ -194,13 +194,16 @@ define([
                     var finishSection = item.closest('.simple-section');
                     item.setAttribute('aria-busy', 'true');
                     completeFeaturedOnContinue(finishSection).then(function() {
-                        return markUnitComplete(finishSection);
+                        return parseInt(finishSection.dataset.section, 10) === 0
+                            ? true : markUnitComplete(finishSection);
                     }).then(function(success) {
                         if (!success) {
                             item.removeAttribute('aria-busy');
                             return;
                         }
-                        paintUnitRead(finishSection);
+                        if (parseInt(finishSection.dataset.section, 10) !== 0) {
+                            paintUnitRead(finishSection);
+                        }
                         return finishCourse();
                     }).finally(function() {
                         item.removeAttribute('aria-busy');

@@ -182,6 +182,9 @@ class content extends content_base {
             // Build section content using the section output class.
             $sectionclass = $format->get_output_classname('content\\section');
             $sectionoutput = new $sectionclass($format, $section);
+            if (method_exists($sectionoutput, 'set_section_progress')) {
+                $sectionoutput->set_section_progress($navitem->progress);
+            }
             $sectiondata = $sectionoutput->export_for_template($output);
             $data->sections[] = $sectiondata;
         }

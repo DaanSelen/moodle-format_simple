@@ -52,7 +52,7 @@ Feature: Simple format course display and navigation
     And I should see "Unit 3"
 
   @javascript
-  Scenario: Continue records units and Finish submits the course
+  Scenario: Continue records units and Finish reports the result
     Given I log in as "student1"
     And I am on "Course 1" course homepage
     When I click on "#simple-section-0 .simple-section-next" "css_element"
@@ -65,6 +65,19 @@ Feature: Simple format course display and navigation
     When I click on "#simple-section-3 .simple-section-finish" "css_element"
     Then ".simple-completion-status" "css_element" should exist
     And ".simple-nav-item[data-section='3'][data-unitread='true']" "css_element" should exist
+
+  @javascript
+  Scenario: Finish is available when Course Info is the only section
+    Given the following "courses" exist:
+      | fullname     | shortname | format | numsections |
+      | Empty course | EMPTY     | simple | 0           |
+    And the following "course enrolments" exist:
+      | user     | course | role    |
+      | student1 | EMPTY  | student |
+    And I log in as "student1"
+    And I am on "Empty course" course homepage
+    When I click on "#simple-section-0 .simple-section-finish" "css_element"
+    Then ".simple-completion-status" "css_element" should exist
 
   @javascript
   Scenario: A course viewer who is not enrolled can continue between units

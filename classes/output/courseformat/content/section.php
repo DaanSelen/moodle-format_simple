@@ -35,6 +35,18 @@ use stdClass;
  * content embedding, resource icons, and learning outcomes display.
  */
 class section extends section_base {
+    /** @var stdClass|null Section progress already calculated for the navigation. */
+    private $sectionprogress = null;
+
+    /**
+     * Reuse the progress calculated for this section's navigation item.
+     *
+     * @param stdClass $progress The section progress.
+     */
+    public function set_section_progress(stdClass $progress): void {
+        $this->sectionprogress = $progress;
+    }
+
     /**
      * Returns the template name for this output class.
      *
@@ -215,7 +227,7 @@ class section extends section_base {
         }
 
         // Section completion progress.
-        $progress = \format_simple::get_section_progress($section, $course);
+        $progress = $this->sectionprogress ?? \format_simple::get_section_progress($section, $course);
         $data->progress = $progress;
         $data->iscomplete = ($progress->status === 'complete');
         $data->isinprogress = ($progress->status === 'inprogress');
