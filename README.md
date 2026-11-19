@@ -13,13 +13,13 @@ A modern, minimalist course format for Moodle 5.0+ that presents one unit at a t
 ### Navigation
 - **Custom navigation panel** with SVG-based completion progress indicators — checkmarks, progress rings, and padlock icons for restricted sections (replaces Moodle's built-in course index)
 - **Cog navigation** — a compact tile-grid popover replacing the secondary navigation bar, providing quick access to Participants, Grades, Settings, and 40+ other course tools with Font Awesome icons
+- **Course settings shortcut** — a Settings tile in the course tools menu opens the current course's settings for users with permission to edit it
 - **Persistent home button** for navigating back to the course from any activity page
 - **Unread forum badge** — displays a count of unread forum posts on the section 0 navigation button
 - **Forum back-link** — on a discussion page the forum's title links back to its list of discussions, revealed by an arrow on hover
 - **Direct Q&A discussions** — a Q&A forum with a single discussion for the student (one copy per group counts) opens straight into it; teachers still see the list
 
 ### Course info
-- **Persistent course title** — keeps the course name visible at the top while viewing each unit
 - **Course banner** (optional) — hero image with course name on section 0
 - **Course Info overlay** (optional) — displays section 0 content in a floating modal accessible from every page in the course, preserving interactive widget state
 

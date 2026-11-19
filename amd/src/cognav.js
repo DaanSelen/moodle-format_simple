@@ -1011,8 +1011,10 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
      * @param {number} courseId The course ID.
      * @param {number} section0Modal Whether section 0 modal mode is enabled.
      * @param {number} unreadCount Number of unread forum posts in section 0.
+     * @param {string} courseSettingsUrl URL for editing this course's settings.
+     * @param {boolean} canEditCourse Whether the current user can update this course.
      */
-    var setup = function(courseUrl, courseId, section0Modal, unreadCount) {
+    var setup = function(courseUrl, courseId, section0Modal, unreadCount, courseSettingsUrl, canEditCourse) {
         // Ensure the .format-simple body class is present.
         if (!document.body.classList.contains('format-simple')) {
             return;
@@ -1026,6 +1028,22 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
         // Extract nav items from secondary navigation.
         var secnav = document.querySelector('.secondary-navigation');
         var rawItems = secnav ? extractNavItems(secnav) : [];
+        if (canEditCourse && courseSettingsUrl) {
+            var settingsUrl = new URL(courseSettingsUrl, window.location.origin);
+            var hasCourseSettings = rawItems.some(function(item) {
+                var itemUrl = new URL(item.url, window.location.origin);
+                return itemUrl.pathname === settingsUrl.pathname &&
+                    itemUrl.searchParams.get('id') === settingsUrl.searchParams.get('id');
+            });
+            if (!hasCourseSettings) {
+                rawItems.push({
+                    text: langStrings.editcoursesettings,
+                    url: courseSettingsUrl,
+                    active: window.location.pathname === settingsUrl.pathname,
+                    icon: 'fa-sliders'
+                });
+            }
+        }
 
         // Determine whether to show home button.
         var showhome = courseUrl && !isOnCourseMainPage(courseUrl);
@@ -1144,11 +1162,23 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
          * @param {number} courseId The course ID.
          * @param {number} section0Modal Whether section 0 modal mode is enabled.
          * @param {number} unreadCount Number of unread forum posts in section 0.
+         * @param {string} courseSettingsUrl URL for editing this course's settings.
+         * @param {boolean} canEditCourse Whether the current user can update this course.
          * @param {string} darktheme Theme preference: light, dark, or auto.
          * @param {string} darkstart Auto mode dark start time, HH:MM.
          * @param {string} darkend Auto mode dark end time, HH:MM.
          */
-        init: function(courseUrl, courseId, section0Modal, unreadCount, darktheme, darkstart, darkend) {
+        init: function(
+            courseUrl,
+            courseId,
+            section0Modal,
+            unreadCount,
+            courseSettingsUrl,
+            canEditCourse,
+            darktheme,
+            darkstart,
+            darkend
+        ) {
             if (initialised) {
                 return;
             }
@@ -1186,6 +1216,7 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
             Str.get_strings([
                 {key: 'backtocourse', component: 'format_simple'},
                 {key: 'coursetools', component: 'format_simple'},
+                {key: 'editcoursesettings', component: 'format_simple'},
                 {key: 'courseinfo', component: 'format_simple'},
                 {key: 'close', component: 'format_simple'},
                 {key: 'loading', component: 'format_simple'},
@@ -1200,24 +1231,26 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
             ]).then(function(strings) {
                 langStrings.backtocourse = strings[0];
                 langStrings.coursetools = strings[1];
-                langStrings.courseinfo = strings[2];
-                langStrings.close = strings[3];
-                langStrings.loading = strings[4];
-                langStrings.failedtoload = strings[5];
-                langStrings.unreadposts = strings[6];
-                langStrings.darkmode = strings[7];
-                langStrings.darkmodelight = strings[8];
-                langStrings.darkmodedark = strings[9];
-                langStrings.darkmodeauto = strings[10];
-                langStrings.darkmodefrom = strings[11];
-                langStrings.darkmodeuntil = strings[12];
+                langStrings.editcoursesettings = strings[2];
+                langStrings.courseinfo = strings[3];
+                langStrings.close = strings[4];
+                langStrings.loading = strings[5];
+                langStrings.failedtoload = strings[6];
+                langStrings.unreadposts = strings[7];
+                langStrings.darkmode = strings[8];
+                langStrings.darkmodelight = strings[9];
+                langStrings.darkmodedark = strings[10];
+                langStrings.darkmodeauto = strings[11];
+                langStrings.darkmodefrom = strings[12];
+                langStrings.darkmodeuntil = strings[13];
 
-                setup(courseUrl, courseId, section0Modal, unreadCount);
+                setup(courseUrl, courseId, section0Modal, unreadCount, courseSettingsUrl, canEditCourse);
                 return;
             }).catch(function() {
                 // Fallback: use English strings if loading fails.
                 langStrings.backtocourse = 'Back to course';
                 langStrings.coursetools = 'Course tools';
+                langStrings.editcoursesettings = 'Settings';
                 langStrings.courseinfo = 'Course Info';
                 langStrings.close = 'Close';
                 langStrings.loading = 'Loading...';
@@ -1230,7 +1263,7 @@ define(['core/ajax', 'core/str', 'core/templates', 'core_filters/events'], funct
                 langStrings.darkmodefrom = 'Dark from';
                 langStrings.darkmodeuntil = 'until';
 
-                setup(courseUrl, courseId, section0Modal, unreadCount);
+                setup(courseUrl, courseId, section0Modal, unreadCount, courseSettingsUrl, canEditCourse);
             });
         }
     };

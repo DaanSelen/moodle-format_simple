@@ -198,7 +198,7 @@ Conditions for the count to be non-zero:
 
 #### page_set_course()
 
-This method is called by Moodle on **every course page** (not just the course view). It initializes the `format_simple/cognav` AMD module with four parameters:
+This method is called by Moodle on **every course page** (not just the course view). It initializes the `format_simple/cognav` AMD module with the course URL and ID, Course Info modal setting and unread count, course settings URL and edit permission, and the user's theme preferences.
 
 ```php
 $page->requires->js_call_amd('format_simple/cognav', 'init', [
@@ -206,6 +206,11 @@ $page->requires->js_call_amd('format_simple/cognav', 'init', [
     (int) $course->id,       // Course ID
     $section0modal,          // 1 if modal enabled, 0 otherwise
     $unreadcount,            // Unread forum post count
+    $settingsurl->out(false), // Current course settings URL
+    $caneditcourse,          // Whether the user can edit course settings
+    $darktheme,              // User's theme preference
+    $darkstart,              // Auto mode start time
+    $darkend,                // Auto mode end time
 ]);
 ```
 
@@ -242,9 +247,6 @@ Each entry contains:
 - `section0modal` — whether modal mode is enabled
 - `section0modalhtml` — pre-rendered section 0 HTML (for modal DOM transfer)
 - `section0unread`, `hassection0unread`, `section0unreadlabel` — unread badge data
-
-**Course title:**
-- `coursefullname` — formatted full course name
 
 **Banner data:**
 - `showbanner`, `courseshortname`, `coursefullname`, `courseimageurl`, `hascourseimage`
@@ -473,7 +475,7 @@ Inline/embedded content is displayed without visiting `view.php`, so completion 
 **AMD module:** `format_simple/cognav`
 **Dependencies:** `core/ajax`, `core/str`
 **Loaded by:** `page_set_course()` in `lib.php` (runs on **every** course page)
-**Entry point:** `init(courseUrl, courseId, section0Modal, unreadCount)`
+**Entry point:** `init(courseUrl, courseId, section0Modal, unreadCount, courseSettingsUrl, canEditCourse, darktheme, darkstart, darkend)`
 
 #### Purpose
 
@@ -512,6 +514,7 @@ Parses Moodle's secondary navigation DOM in order:
 3. More menu items (`[data-region="moredropdown"] .dropdown-item`)
 
 Deduplicates by URL, extracts text, and detects active state.
+For users with `moodle/course:update`, it adds a **Settings** tile linking to the current course's `/course/edit.php` page if Moodle's secondary navigation does not already include it.
 
 #### Cog popover HTML structure
 
