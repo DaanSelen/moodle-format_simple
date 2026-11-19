@@ -60,6 +60,12 @@ class content extends content_base {
 
         $data = new stdClass();
         $data->courseid = $course->id;
+        $coursecontext = \context_course::instance($course->id);
+        $data->coursefullname = format_string(
+            $course->fullname,
+            true,
+            ['context' => $coursecontext]
+        );
         $data->editing = $PAGE->user_is_editing();
         $data->sectionreturn = $format->get_sectionnum() ?? 'null';
         $data->pagesectionid = $format->get_sectionid() ?? 'null';
@@ -105,13 +111,8 @@ class content extends content_base {
             $sectiondata->showbanner = !empty($formatoptions['showsection0banner']);
 
             if ($sectiondata->showbanner) {
-                $coursecontext = \context_course::instance($course->id);
                 $sectiondata->courseshortname = format_string($course->shortname);
-                $sectiondata->coursefullname = format_string(
-                    $course->fullname,
-                    true,
-                    ['context' => $coursecontext]
-                );
+                $sectiondata->coursefullname = $data->coursefullname;
 
                 $courseimage = course_get_courseimage($course);
                 if ($courseimage) {

@@ -19,6 +19,7 @@ A modern, minimalist course format for Moodle 5.0+ that presents one unit at a t
 - **Direct Q&A discussions** — a Q&A forum with a single discussion for the student (one copy per group counts) opens straight into it; teachers still see the list
 
 ### Course info
+- **Persistent course title** — keeps the course name visible at the top while viewing each unit
 - **Course banner** (optional) — hero image with course name on section 0
 - **Course Info overlay** (optional) — displays section 0 content in a floating modal accessible from every page in the course, preserving interactive widget state
 
