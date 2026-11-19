@@ -2,6 +2,14 @@
 
 All notable changes to the Simple course format plugin are documented in this file.
 
+## v1.2.1 (2026-11-19) - Stable
+
+### Added
+- The Continue button can complete the featured inline or embedded activity when its completion
+  mode is manual or requires only viewing the activity. Grade, submission, and other
+  multi-condition requirements remain controlled by their activity modules.
+- Courses can choose between "Continue to <unit name>" and the short "Continue" label.
+
 ## v1.2.0 (2026-09-29) - Stable
 
 ### Added

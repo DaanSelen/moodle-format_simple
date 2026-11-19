@@ -82,6 +82,7 @@ class content extends content_base {
         // Handle section 0 (Course Info) separately.
         $formatoptions = $format->get_format_options();
         $data->navcollapse = max(0, (int) ($formatoptions['navcollapse'] ?? 0));
+        $shortcontinuelabel = (int) ($formatoptions['continuebuttonlabel'] ?? 0) === 1;
         $section0modal = !empty($formatoptions['section0modal']);
         $showindexactivities = !empty($formatoptions['showindexactivities']);
         $data->hassection0 = false;
@@ -220,11 +221,9 @@ class content extends content_base {
                 $nexturl->param('section', (int) $nextsection->num);
                 $sectiondata->hasnextsection = true;
                 $sectiondata->nextsection = (int) $nextsection->num;
-                $sectiondata->nextsectionlabel = get_string(
-                    'continuetonext',
-                    'format_simple',
-                    $nextsection->name
-                );
+                $sectiondata->nextsectionlabel = $shortcontinuelabel
+                    ? get_string('continue', 'format_simple')
+                    : get_string('continuetonext', 'format_simple', $nextsection->name);
                 $sectiondata->nextsectionurl = $nexturl->out(false);
                 break;
             }

@@ -186,6 +186,8 @@ final class completion_test extends \advanced_testcase {
         $this->assertTrue($item->hasinlinecontent, 'Featured page content should render in place.');
         $this->assertTrue($item->hasindicator, 'Featured content must carry a completion indicator.');
         $this->assertTrue($item->ismanualcompletion, 'The student marks this one done themselves.');
+        $this->assertTrue($item->hascontinuecompletion);
+        $this->assertEquals('manual', $item->continuecompletion);
         $this->assertEquals(
             get_string('completion_manual:markdone', 'course'),
             $item->completionlabel
@@ -210,6 +212,8 @@ final class completion_test extends \advanced_testcase {
         $this->assertTrue($item->hasviewtracking);
         $this->assertEquals('mod_page_view_page', $item->viewservice);
         $this->assertEquals($page->id, $item->viewinstance);
+        $this->assertTrue($item->hascontinuecompletion);
+        $this->assertEquals('view', $item->continuecompletion);
     }
 
     /**

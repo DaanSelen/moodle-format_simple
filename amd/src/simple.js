@@ -56,6 +56,9 @@ define([
     /** @type {Set<string>} Module view events already raised this session. */
     const viewedUrls = new Set();
 
+    /** @type {Map<string, Promise<boolean>>} View events currently being reported. */
+    const pendingViewEvents = new Map();
+
     /** @type {Map<HTMLElement, number>} Pending dwell timers keyed by observed element. */
     const dwellTimers = new Map();
 
@@ -160,6 +163,16 @@ define([
 
                 const sectionNum = parseInt(item.dataset.section, 10);
                 if (sectionNum === activeSection) {
+                    return;
+                }
+
+                if (item.classList.contains('simple-section-next')) {
+                    var currentSection = item.closest('.simple-section');
+                    item.setAttribute('aria-busy', 'true');
+                    completeFeaturedOnContinue(currentSection).then(function() {
+                        item.removeAttribute('aria-busy');
+                        switchSection(sectionNum);
+                    });
                     return;
                 }
 
@@ -860,15 +873,22 @@ define([
      * Toggle an activity card's manual completion indicator.
      *
      * @param {HTMLElement} dot The indicator element.
+     * @param {boolean} forceComplete Whether to only mark the activity complete.
+     * @return {Promise<boolean>} Whether the requested state was saved.
      */
-    const toggleCardCompletion = function(dot) {
+    const toggleCardCompletion = function(dot, forceComplete) {
+        forceComplete = forceComplete === true;
         if (dot.dataset.busy === '1') {
-            return;
+            return Promise.resolve(false);
         }
         dot.dataset.busy = '1';
 
         var cmid = parseInt(dot.dataset.cmid, 10);
-        var complete = !dot.classList.contains('is-complete');
+        var complete = forceComplete || !dot.classList.contains('is-complete');
+        if (complete && dot.classList.contains('is-complete')) {
+            delete dot.dataset.busy;
+            return Promise.resolve(true);
+        }
 
         // Show the new state straight away, then put it back if the server disagrees.
         var paint = function(state) {
@@ -878,17 +898,21 @@ define([
         };
         paint(complete);
 
-        Ajax.call([{
-            methodname: 'core_completion_update_activity_completion_status_manually',
-            args: {cmid: cmid, completed: complete},
-            done: function() {
-                delete dot.dataset.busy;
-            },
-            fail: function() {
-                paint(!complete);
-                delete dot.dataset.busy;
-            }
-        }]);
+        return new Promise(function(resolve) {
+            Ajax.call([{
+                methodname: 'core_completion_update_activity_completion_status_manually',
+                args: {cmid: cmid, completed: complete},
+                done: function() {
+                    delete dot.dataset.busy;
+                    resolve(true);
+                },
+                fail: function() {
+                    paint(!complete);
+                    delete dot.dataset.busy;
+                    resolve(false);
+                }
+            }]);
+        });
     };
 
     /**
@@ -909,12 +933,12 @@ define([
         var param = el.getAttribute('data-viewparam');
         var instance = parseInt(el.getAttribute('data-viewinstance'), 10);
         if (!service || !param || !instance) {
-            return;
+            return Promise.resolve(false);
         }
 
         var key = service + ':' + instance;
         if (viewedUrls.has(key)) {
-            return;
+            return pendingViewEvents.get(key) || Promise.resolve(true);
         }
         viewedUrls.add(key);
 
@@ -922,18 +946,55 @@ define([
         var args = {};
         args[param] = instance;
 
-        Ajax.call([{
-            methodname: service,
-            args: args,
-            done: function() {
-                markCompletionState(el, 'complete');
-                refreshSectionProgress(sectionNum);
-            },
-            fail: function() {
-                // Allow a later attempt, for instance after the student returns to the section.
-                viewedUrls.delete(key);
-            }
-        }]);
+        var request = new Promise(function(resolve) {
+            Ajax.call([{
+                methodname: service,
+                args: args,
+                done: function() {
+                    pendingViewEvents.delete(key);
+                    markCompletionState(el, 'complete');
+                    refreshSectionProgress(sectionNum);
+                    resolve(true);
+                },
+                fail: function() {
+                    // Allow a later attempt, for instance after the student returns to the section.
+                    viewedUrls.delete(key);
+                    pendingViewEvents.delete(key);
+                    resolve(false);
+                }
+            }]);
+        });
+        pendingViewEvents.set(key, request);
+        return request;
+    };
+
+    /**
+     * Complete the featured in-place activity before moving to the next unit.
+     *
+     * The server only exposes this action for manual completion or a sole view condition, so
+     * Continue cannot satisfy submissions, grades, or other module-owned requirements.
+     *
+     * @param {HTMLElement|null} section The current section.
+     * @return {Promise<boolean>} Whether a completion action succeeded.
+     */
+    const completeFeaturedOnContinue = function(section) {
+        if (!section) {
+            return Promise.resolve(false);
+        }
+
+        var wrapper = section.querySelector('[data-complete-on-continue]');
+        if (!wrapper) {
+            return Promise.resolve(false);
+        }
+
+        var sectionNum = parseInt(section.dataset.section, 10);
+        if (wrapper.dataset.completeOnContinue === 'manual') {
+            var dot = wrapper.querySelector('[data-action="toggle-completion"]');
+            return dot ? toggleCardCompletion(dot, true) : Promise.resolve(false);
+        }
+
+        var viewable = wrapper.querySelector('[data-viewservice]');
+        return viewable ? raiseViewEvent(viewable, sectionNum) : Promise.resolve(false);
     };
 
     /**
@@ -947,9 +1008,8 @@ define([
         if (!wrapper) {
             return;
         }
-        var region = wrapper.querySelector('[data-completion-tracked="1"]');
-        if (region) {
-            region.setAttribute('data-completion-state', state);
+        if (wrapper.hasAttribute('data-completion-tracked')) {
+            wrapper.setAttribute('data-completion-state', state);
         }
         var inline = wrapper.querySelector('.simple-inline-content, .simple-embed-container');
         if (inline) {
