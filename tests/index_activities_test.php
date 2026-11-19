@@ -209,7 +209,31 @@ final class index_activities_test extends \advanced_testcase {
         $this->assertTrue($sections[1]->hasnextsection);
         $this->assertSame(2, $sections[1]->nextsection);
         $this->assertStringContainsString('#section-2', $sections[1]->nextsectionurl);
+        $this->assertEquals(
+            get_string('continuetonext', 'format_simple', $sections[2]->name),
+            $sections[1]->nextsectionlabel
+        );
         $this->assertObjectNotHasProperty('hasnextsection', $sections[2]);
+    }
+
+    /**
+     * The continuation action can use a short, destination-independent label.
+     */
+    public function test_continue_button_can_use_short_label(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        [$course, $student] = $this->make_course();
+        course_get_format($course->id)->update_course_format_options([
+            'id' => $course->id,
+            'continuebuttonlabel' => 1,
+        ]);
+        rebuild_course_cache($course->id, true);
+
+        $data = $this->export_content($course, $student);
+        $sections = array_column($data->sections, null, 'num');
+
+        $this->assertEquals(get_string('continue', 'format_simple'), $sections[1]->nextsectionlabel);
     }
 
     /**

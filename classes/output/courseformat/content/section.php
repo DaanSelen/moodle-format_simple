@@ -284,9 +284,10 @@ class section extends section_base {
         if ($cmdata->completionenabled) {
             $completion = new \completion_info($course);
             $completiondata = $completion->get_data($cm, true, $USER->id);
+            $state = (int) $completiondata->completionstate;
             $cmdata->iscomplete = (
-                $completiondata->completionstate == COMPLETION_COMPLETE
-                || $completiondata->completionstate == COMPLETION_COMPLETE_PASS
+                $state === COMPLETION_COMPLETE
+                || $state === COMPLETION_COMPLETE_PASS
             );
         }
         // Machine readable state for the section progress ring, which must not depend on
@@ -295,6 +296,8 @@ class section extends section_base {
         $cmdata->completiontooltip = $this->get_completion_tooltip($cm, $cmdata);
         $cmdata->completionlabel = $this->get_completion_label($cm, $cmdata);
         $cmdata->hasindicator = !empty($cmdata->completionenabled);
+        $cmdata->continuecompletion = '';
+        $cmdata->hascontinuecompletion = false;
 
         // Unread forum post count, shown as a badge next to the activity name.
         $cmdata->unreadcount = ($cm->modname === 'forum') ? $this->get_forum_unread_count($cm, $course) : 0;
@@ -577,9 +580,39 @@ class section extends section_base {
             return;
         }
 
+        $cmdata->continuecompletion = (int) $this->section->section === 0
+            ? ''
+            : $this->get_continue_completion_action($cm, $cmdata);
+        $cmdata->hascontinuecompletion = ($cmdata->continuecompletion !== '');
         $cmdata->completionlabel = $this->get_completion_label($cm, $cmdata, true);
         $cmdata->completiontooltip = $this->get_completion_tooltip($cm, $cmdata, true);
         $cmdata->hasindicator = !empty($cmdata->ismanualcompletion) || $cmdata->completionlabel !== '';
+    }
+
+    /**
+     * Determine whether continuing can safely complete this in-place activity.
+     *
+     * Only actions already controlled by the learner are offered here. Automatic completion is
+     * eligible when viewing is its sole condition; grade, submission and other conditions remain
+     * under the control of their activity modules.
+     *
+     * @param \cm_info $cm The course module info.
+     * @param stdClass $cmdata The course module template data.
+     * @return string "manual", "view", or an empty string.
+     */
+    private function get_continue_completion_action(\cm_info $cm, stdClass $cmdata): string {
+        global $USER;
+
+        if (!empty($cmdata->ismanualcompletion)) {
+            return 'manual';
+        }
+
+        $details = \core_completion\cm_completion_details::get_instance($cm, $USER->id, true)->get_details();
+        if (count($details) === 1 && array_key_exists('completionview', $details)) {
+            return 'view';
+        }
+
+        return '';
     }
 
     /**

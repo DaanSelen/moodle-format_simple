@@ -294,6 +294,10 @@ class format_simple extends core_courseformat\base {
                     'default' => 0,
                     'type' => PARAM_INT,
                 ],
+                'continuebuttonlabel' => [
+                    'default' => 0,
+                    'type' => PARAM_INT,
+                ],
                 'showindexactivities' => [
                     'default' => 0,
                     'type' => PARAM_INT,
@@ -367,6 +371,21 @@ class format_simple extends core_courseformat\base {
                             10 => new \lang_string('navcollapse_seconds', 'format_simple', 10),
                             30 => new \lang_string('navcollapse_seconds', 'format_simple', 30),
                             60 => new \lang_string('navcollapse_seconds', 'format_simple', 60),
+                        ],
+                    ],
+                ]
+            );
+            $courseformatoptions['continuebuttonlabel'] = array_merge(
+                $courseformatoptions['continuebuttonlabel'],
+                [
+                    'label' => new \lang_string('continuebuttonlabel', 'format_simple'),
+                    'help' => 'continuebuttonlabel',
+                    'help_component' => 'format_simple',
+                    'element_type' => 'select',
+                    'element_attributes' => [
+                        [
+                            0 => new \lang_string('continuebuttonlabel_named', 'format_simple'),
+                            1 => new \lang_string('continuebuttonlabel_short', 'format_simple'),
                         ],
                     ],
                 ]
@@ -764,9 +783,10 @@ class format_simple extends core_courseformat\base {
 
             $progress->total++;
             $completiondata = $completion->get_data($cm, true, $USER->id);
+            $state = (int) $completiondata->completionstate;
             if (
-                $completiondata->completionstate == COMPLETION_COMPLETE
-                || $completiondata->completionstate == COMPLETION_COMPLETE_PASS
+                $state === COMPLETION_COMPLETE
+                || $state === COMPLETION_COMPLETE_PASS
             ) {
                 $progress->completed++;
             }
