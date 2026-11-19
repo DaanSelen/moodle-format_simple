@@ -60,6 +60,12 @@ class content extends content_base {
 
         $data = new stdClass();
         $data->courseid = $course->id;
+        $coursecontext = \context_course::instance($course->id);
+        $data->coursefullname = format_string(
+            $course->fullname,
+            true,
+            ['context' => $coursecontext]
+        );
         $data->editing = $PAGE->user_is_editing();
         $data->sectionreturn = $format->get_sectionnum() ?? 'null';
         $data->pagesectionid = $format->get_sectionid() ?? 'null';
@@ -82,7 +88,6 @@ class content extends content_base {
         // Handle section 0 (Course Info) separately.
         $formatoptions = $format->get_format_options();
         $data->navcollapse = max(0, (int) ($formatoptions['navcollapse'] ?? 0));
-        $shortcontinuelabel = (int) ($formatoptions['continuebuttonlabel'] ?? 0) === 1;
         $section0modal = !empty($formatoptions['section0modal']);
         $showindexactivities = !empty($formatoptions['showindexactivities']);
         $data->hassection0 = false;
@@ -106,13 +111,8 @@ class content extends content_base {
             $sectiondata->showbanner = !empty($formatoptions['showsection0banner']);
 
             if ($sectiondata->showbanner) {
-                $coursecontext = \context_course::instance($course->id);
                 $sectiondata->courseshortname = format_string($course->shortname);
-                $sectiondata->coursefullname = format_string(
-                    $course->fullname,
-                    true,
-                    ['context' => $coursecontext]
-                );
+                $sectiondata->coursefullname = $data->coursefullname;
 
                 $courseimage = course_get_courseimage($course);
                 if ($courseimage) {
@@ -237,8 +237,8 @@ class content extends content_base {
                 $nexturl->param('section', (int) $nextsection->num);
                 $sectiondata->hasnextsection = true;
                 $sectiondata->nextsection = (int) $nextsection->num;
-                $sectiondata->nextsectionlabel = $shortcontinuelabel
-                    ? get_string('continue', 'format_simple')
+                $sectiondata->nextsectionlabel = !empty($formatoptions['continuebuttontext'])
+                    ? get_string('continuebuttontext_plain', 'format_simple')
                     : get_string('continuetonext', 'format_simple', $nextsection->name);
                 $sectiondata->nextsectionurl = $nexturl->out(false);
                 break;

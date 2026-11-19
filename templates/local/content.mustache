@@ -22,6 +22,7 @@
 
     Context variables required for this template:
     * courseid - The course ID.
+    * coursefullname - The course's full name.
     * editing - Whether editing mode is on.
     * hassections - Whether there are any visible sections.
     * navitems - Array of navigation items for the sidebar.
@@ -36,6 +37,7 @@
     Example context (json):
     {
         "courseid": 2,
+        "coursefullname": "Example course",
         "editing": false,
         "hassections": true,
         "activesection": 1,
@@ -236,6 +238,7 @@
 
     {{! ---- Content Area ---- }}
     <div class="simple-content" role="main">
+        <h1 class="simple-course-title">{{coursefullname}}</h1>
         <div data-for="course_sectionlist">
             {{#sections}}
                 {{> format_simple/local/content/section }}

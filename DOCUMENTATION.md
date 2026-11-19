@@ -198,7 +198,7 @@ Conditions for the count to be non-zero:
 
 #### page_set_course()
 
-This method is called by Moodle on **every course page** (not just the course view). It initializes the `format_simple/cognav` AMD module with four parameters:
+This method is called by Moodle on **every course page** (not just the course view). It initializes the `format_simple/cognav` AMD module with the course URL and ID, Course Info modal setting and unread count, course settings URL and edit permission, and the user's theme preferences.
 
 ```php
 $page->requires->js_call_amd('format_simple/cognav', 'init', [
@@ -206,6 +206,11 @@ $page->requires->js_call_amd('format_simple/cognav', 'init', [
     (int) $course->id,       // Course ID
     $section0modal,          // 1 if modal enabled, 0 otherwise
     $unreadcount,            // Unread forum post count
+    $settingsurl->out(false), // Current course settings URL
+    $caneditcourse,          // Whether the user can edit course settings
+    $darktheme,              // User's theme preference
+    $darkstart,              // Auto mode start time
+    $darkend,                // Auto mode end time
 ]);
 ```
 
@@ -242,6 +247,9 @@ Each entry contains:
 - `section0modal` — whether modal mode is enabled
 - `section0modalhtml` — pre-rendered section 0 HTML (for modal DOM transfer)
 - `section0unread`, `hassection0unread`, `section0unreadlabel` — unread badge data
+
+**Course title:**
+- `coursefullname` — formatted full course name shown above the active unit
 
 **Banner data:**
 - `showbanner`, `courseshortname`, `coursefullname`, `courseimageurl`, `hascourseimage`
@@ -470,7 +478,7 @@ Inline/embedded content is displayed without visiting `view.php`, so completion 
 **AMD module:** `format_simple/cognav`
 **Dependencies:** `core/ajax`, `core/str`
 **Loaded by:** `page_set_course()` in `lib.php` (runs on **every** course page)
-**Entry point:** `init(courseUrl, courseId, section0Modal, unreadCount)`
+**Entry point:** `init(courseUrl, courseId, section0Modal, unreadCount, courseSettingsUrl, canEditCourse, darktheme, darkstart, darkend)`
 
 #### Purpose
 
@@ -509,6 +517,7 @@ Parses Moodle's secondary navigation DOM in order:
 3. More menu items (`[data-region="moredropdown"] .dropdown-item`)
 
 Deduplicates by URL, extracts text, and detects active state.
+For users with `moodle/course:update`, it adds a **Settings** tile linking to the current course's `/course/edit.php` page if Moodle's secondary navigation does not already include it.
 
 #### Cog popover HTML structure
 
@@ -1002,7 +1011,7 @@ $plugin->release   = '0.6.0';
 | `showsection0banner` | Show course banner | Checkbox | `1` (Yes) | Display hero banner with course image and name on section 0 |
 | `section0modal` | Show Course Info as overlay | Checkbox | `0` (No) | Display section 0 in a floating modal instead of inline in navigation |
 | `navcollapse` | Navigation auto-collapse delay | Select | `0` (Never) | Keep the navigation expanded or collapse it after the selected delay for this course. |
-| `continuebuttonlabel` | Continue button label | Select | `Continue to <unit>` | Use the next unit name in the button or display only "Continue". Clicking it completes the featured inline/embedded activity when completion is manual or view-only. |
+| `continuebuttontext` | Continue button text | Select | `0` (Continue to next unit name) | Choose whether the button includes the next unit name or says only Continue. Clicking it completes the featured inline/embedded activity when completion is manual or view-only. |
 | `skipsingleforumindex` | Open single Q&A discussions directly | Select | `1` (Yes) | A Q&A forum whose only visible discussion (per group in separate groups mode) is one opens straight into it via `forumview.php`, which marks the forum viewed. Users with `moodle/site:accessallgroups` always get the list. Only course-page links change; other entry points (activity navigation, notifications, calendar) still open the list. |
 
 ### Section-level settings
